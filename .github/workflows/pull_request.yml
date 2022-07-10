@@ -40,10 +40,14 @@ jobs:
       if: ${{ matrix.compiler == 'clang' }}
       id: setup_clang
       run: |
-        sudo apt-get update -y
-        sudo apt-get -y install clang-9
+        #sudo apt-get update -y
+        #sudo apt-get -y install clang-9
         echo "::set-output name=c_comp::clang"
         echo "::set-output name=cpp_comp::clang++"
+
+    - name: run id
+      run: |
+        echo "The run id is: $GITHUB_RUN_ID"
 
     - name: Configure cmake
       env:
