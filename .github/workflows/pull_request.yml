@@ -47,17 +47,19 @@ jobs:
 
     - name: run id
       run: |
-        echo "The run id is: $GITHUB_RUN_ID"
+        echo "$GITHUB_REF, $GITHUB_REF_NAME"
+        echo "${{ github.event.pull_request.number }}"
+        echo "${{ github.event.number }}"
 
     - name: Configure cmake
       env:
         CC: ${{steps.setup_clang.outputs.c_comp}}
-        #CXX: ${{steps.setup_clang.outputs.cpp_comp}}
+        CXX: ${{steps.setup_clang.outputs.cpp_comp}}
       run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=installation
 
     - name: Build
       id: build
-      run: cmake --build build --target install
+      run: cmake --build build --target hello
         
     #- name: Cache seed
     #  id: cache_seed
