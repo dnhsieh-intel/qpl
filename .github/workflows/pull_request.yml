@@ -41,7 +41,7 @@ jobs:
       id: setup_clang
       run: |
         sudo apt-get update -y
-        sudo apt-get -y install clang-11
+        sudo apt-get -y install clang-9
         echo "::set-output name=c_comp::clang"
         echo "::set-output name=cpp_comp::clang++"
 
@@ -72,25 +72,25 @@ jobs:
     #    echo "Using seed $seed"
 
     - name: Functional tests (Algorithmic tests)
-      if: steps.build.outcome == 'success'
+      if: ${{ always() && steps.build.outcome == 'success' }}
       id: ta_tests
       timeout-minutes: 60
       run: ./installation/bin/tests --seed=100 --gtest_filter=ta_*  --dataset=tools/testdata/
 
     - name: Functional tests (Bad argument tests)
-      if: steps.build.outcome == 'success'
+      if: ${{ always() && steps.build.outcome == 'success' }}
       id: tb_tests
       timeout-minutes: 60
       run: ./installation/bin/tests --seed=100 --gtest_filter=tb_*  --dataset=tools/testdata/
 
     - name: Functional tests (Negative tests)
-      if: steps.build.outcome == 'success'
+      if: ${{ always() && steps.build.outcome == 'success' }}
       id: tn_tests
       timeout-minutes: 60
       run: ./installation/bin/tests --seed=100 --gtest_filter=tn_*  --dataset=tools/testdata/
 
     - name: Functional tests (Thread tests)
-      if: steps.build.outcome == 'success'
+      if: ${{ always() && steps.build.outcome == 'success' }}
       id: tt_tests
       timeout-minutes: 60
       run: ./installation/bin/tests --seed=100 --gtest_filter=tt_*  --dataset=tools/testdata/
