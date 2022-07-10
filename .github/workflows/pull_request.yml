@@ -27,12 +27,11 @@ jobs:
         key: seed
         
     - name: Generate seed
-      if: ${{ steps.cache-seed.outputs.cache-hit == 'false' }}
-      run: |
-        python -c 'from random import randrange; print(randrange(2**32))' > PR${{ github.event.pull_request.number }}_seed.txt
+      if: ${{ steps.cache-seed.outputs.cache-hit != 'true' }}
+      run: python -c 'from random import randrange; print(randrange(2**32))' > PR${{ github.event.pull_request.number }}_seed.txt
         
     - name: Upload seed
-      if: ${{ steps.cache-seed.outputs.cache-hit == 'false' }}
+      if: ${{ steps.cache-seed.outputs.cache-hit != 'true' }}
       uses: actions/upload-artifact@v3
       with:
         name: PR${{ github.event.pull_request.number }}_seed
@@ -51,7 +50,7 @@ jobs:
         key: seed
         
     - name: Download seed
-      if: ${{ steps.cache-seed.outputs.cache-hit == 'false' }}
+      if: ${{ steps.cache-seed.outputs.cache-hit != 'true' }}
       uses: actions/download-artifact@v3
       with:
         name: PR${{ github.event.pull_request.number }}_seed
