@@ -36,14 +36,14 @@ jobs:
         sudo apt-get update -y
         sudo apt-get install -y nasm
 
-    - name: Setup clang
-      if: ${{ matrix.compiler == 'clang' }}
-      id: setup_clang
-      run: |
-        sudo apt-get update -y
-        sudo apt-get -y install clang-12
-        echo "::set-output name=c_comp::clang"
-        echo "::set-output name=cpp_comp::clang++"
+    #- name: Setup clang
+    #  if: ${{ matrix.compiler == 'clang' }}
+    #  id: setup_clang
+    #  run: |
+    #    sudo apt-get update -y
+    #    sudo apt-get -y install clang-12
+    #    echo "::set-output name=c_comp::clang"
+    #    echo "::set-output name=cpp_comp::clang++"
 
     - name: Configure cmake
       env:
@@ -54,43 +54,43 @@ jobs:
     - name: Build
       id: build
       run: cmake --build build --target install
+        
+    - name: Cache seed
+      id: cache_seed
+      uses: actions/cache@v3
+      with:
+        path: ${{ env.GITHUB_RUN_ID }}_seed
+        key: seed
+        
+    - name: Generate seed
+      if: steps.cache-seed.outputs.cache-hit != 'true'
+      run: python -c 'from random import randrange; print(randrange(2**32))' > ${{ env.GITHUB_RUN_ID }}_seed/seed.txt
 
-    - name: Check on build failures
-      if: steps.build.outcome != 'success'
+    - name: Obtain seed
       run: |
-        echo "Build step failed"
-        exit 1
+        seed=`cat ${{ env.GITHUB_RUN_ID }}_seed/seed.txt`
+        echo "Using seed $seed"
 
-    - name: Algorithmic tests
+    - name: Functional tests (Algorithmic tests)
+      if: steps.build.outcome == 'success'
       id: ta_tests
-      continue-on-error: true
       timeout-minutes: 60
-      run: ./installation/bin/tests --seed=1657091097 --gtest_filter=ta_*  --dataset=tools/testdata/
+      run: ./installation/bin/tests --seed=$seed --gtest_filter=ta_*  --dataset=tools/testdata/
 
-    - name: Bad argument tests
+    - name: Functional tests (Bad argument tests)
+      if: steps.build.outcome == 'success'
       id: tb_tests
-      continue-on-error: true
       timeout-minutes: 60
-      run: ./installation/bin/tests --seed=1657091097 --gtest_filter=tb_*  --dataset=tools/testdata/
+      run: ./installation/bin/tests --seed=$seed --gtest_filter=tb_*  --dataset=tools/testdata/
 
-    - name: Negative tests
+    - name: Functional tests (Negative tests)
+      if: steps.build.outcome == 'success'
       id: tn_tests
-      continue-on-error: true
       timeout-minutes: 60
-      run: ./installation/bin/tests --seed=1657091097 --gtest_filter=tn_*  --dataset=tools/testdata/
+      run: ./installation/bin/tests --seed=$seed --gtest_filter=tn_*  --dataset=tools/testdata/
 
-    - name: Thread tests
+    - name: Functional tests (Thread tests)
+      if: steps.build.outcome == 'success'
       id: tt_tests
-      continue-on-error: true
       timeout-minutes: 60
-      run: ./installation/bin/tests --seed=1657091097 --gtest_filter=tt_*  --dataset=tools/testdata/
-
-    - name: Check on test failures
-      if: |
-        steps.ta_tests.outcome != 'success' || steps.tb_tests.outcome != 'success' || steps.tn_tests.outcome != 'success' || steps.tt_tests.outcome != 'success'
-      run: |
-        echo "Algorithmic tests status is ${{steps.ta_tests.outcome}}"
-        echo "Bad argument tests status is ${{steps.tb_tests.outcome}}"
-        echo "Negative tests status is ${{steps.tn_tests.outcome}}"
-        echo "Thread tests status is ${{steps.tt_tests.outcome}}"
-        exit 1
+      run: ./installation/bin/tests --seed=$seed --gtest_filter=tt_*  --dataset=tools/testdata/
