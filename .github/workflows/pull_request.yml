@@ -62,19 +62,9 @@ jobs:
       with:
         name: PR${{ github.event.pull_request.number }}_${{ runner.os }}_${{ matrix.compiler }}_seed
         
-    - name: Obtain seed
-      if: ${{ steps.download_seed.outcome == 'success' }}
-      run: |
-          seed=`cat seed.txt`
-          echo "QPL_TESTING_SEED=$seed" >> $GITHUB_ENV
-        
     - name: Generate seed
       if: ${{ steps.download_seed.outcome != 'success' }}
-      run: |
-        seed="python -c 'from random import randrange; print(randrange(2**32))'"
-        echo "Generated seed $seed"
-        echo "$seed" > seed.txt
-        echo "QPL_TESTING_SEED=$seed" >> $GITHUB_ENV
+      run: python -c 'from random import randrange; print(randrange(2**32))' > seed.txt
         
     - name: Upload seed
       if: ${{ steps.download_seed.outcome != 'success' }}
@@ -82,27 +72,34 @@ jobs:
       with:
         name: PR${{ github.event.pull_request.number }}_${{ runner.os }}_${{ matrix.compiler }}_seed
         path: seed.txt
-
+        
+    - name: Obtain seed
+      id: obtain_seed
+      run: |
+          seed=`cat seed.txt`
+          echo "Seed $seed"
+          echo "::set-output name=seed::$seed"
+    
     - name: Functional tests (Algorithmic tests)
       if: ${{ always() && steps.build.outcome == 'success' }}
       id: ta_tests
       timeout-minutes: 90
-      run: ./installation/bin/tests --seed=${{ env.QPL_TESTING_SEED }} --gtest_filter=ta_*  --dataset=tools/testdata/
+      run: ./installation/bin/tests --seed=${{ steps.obtain_seed.outputs.seed }} --gtest_filter=ta_*  --dataset=tools/testdata/
 
     - name: Functional tests (Bad argument tests)
       if: ${{ always() && steps.build.outcome == 'success' }}
       id: tb_tests
       timeout-minutes: 90
-      run: ./installation/bin/tests --seed=${{ env.QPL_TESTING_SEED }} --gtest_filter=tb_*  --dataset=tools/testdata/
+      run: ./installation/bin/tests --seed=${{ steps.obtain_seed.outputs.seed }} --gtest_filter=tb_*  --dataset=tools/testdata/
 
     - name: Functional tests (Negative tests)
       if: ${{ always() && steps.build.outcome == 'success' }}
       id: tn_tests
       timeout-minutes: 90
-      run: ./installation/bin/tests --seed=${{ env.QPL_TESTING_SEED }} --gtest_filter=tn_*  --dataset=tools/testdata/
+      run: ./installation/bin/tests --seed=${{ steps.obtain_seed.outputs.seed }} --gtest_filter=tn_*  --dataset=tools/testdata/
 
     - name: Functional tests (Thread tests)
       if: ${{ always() && steps.build.outcome == 'success' }}
       id: tt_tests
       timeout-minutes: 90
-      run: ./installation/bin/tests --seed=${{ env.QPL_TESTING_SEED }} --gtest_filter=tt_*  --dataset=tools/testdata/
+      run: ./installation/bin/tests --seed=${{ steps.obtain_seed.outputs.seed }} --gtest_filter=tt_*  --dataset=tools/testdata/
