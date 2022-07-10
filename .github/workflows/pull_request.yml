@@ -40,8 +40,8 @@ jobs:
       if: ${{ matrix.compiler == 'clang' }}
       id: setup_clang
       run: |
-        #sudo apt-get update -y
-        #sudo apt-get -y install clang-9
+        sudo apt-get update -y
+        sudo apt-get -y install clang-12
         echo "::set-output name=c_comp::clang"
         echo "::set-output name=cpp_comp::clang++"
 
@@ -52,7 +52,7 @@ jobs:
     - name: Configure cmake
       env:
         CC: ${{steps.setup_clang.outputs.c_comp}}
-        CXX: ${{steps.setup_clang.outputs.cpp_comp}}
+        #CXX: ${{steps.setup_clang.outputs.cpp_comp}}
       run: cmake -B build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=installation
 
     - name: Build
