@@ -106,30 +106,30 @@ jobs:
     - name: Obtain seed
       id: obtain_seed
       run: |
-          seed="cat PR${{ github.event.pull_request.number }}_seed.txt"
+          seed=`cat PR${{ github.event.pull_request.number }}_seed.txt`
           echo "Seed $seed"
           echo "::set-output name=seed::$seed"
     
     - name: Functional tests (Algorithmic tests)
-      if: ${{ always() && steps.build.outcome == 'success' && steps.obtain_seed.outcome == 'success' }}
+      if: ${{ always() && steps.build.outcome == 'success' }}
       id: ta_tests
       timeout-minutes: 90
       run: ./installation/bin/tests --seed=${{ steps.obtain_seed.outputs.seed }} --gtest_filter=ta_*  --dataset=tools/testdata/
 
     - name: Functional tests (Bad argument tests)
-      if: ${{ always() && steps.build.outcome == 'success' && steps.obtain_seed.outcome == 'success' }}
+      if: ${{ always() && steps.build.outcome == 'success' }}
       id: tb_tests
       timeout-minutes: 90
       run: ./installation/bin/tests --seed=${{ steps.obtain_seed.outputs.seed }} --gtest_filter=tb_*  --dataset=tools/testdata/
 
     - name: Functional tests (Negative tests)
-      if: ${{ always() && steps.build.outcome == 'success' && steps.obtain_seed.outcome == 'success' }}
+      if: ${{ always() && steps.build.outcome == 'success' }}
       id: tn_tests
       timeout-minutes: 90
       run: ./installation/bin/tests --seed=${{ steps.obtain_seed.outputs.seed }} --gtest_filter=tn_*  --dataset=tools/testdata/
 
     - name: Functional tests (Thread tests)
-      if: ${{ always() && steps.build.outcome == 'success' && steps.obtain_seed.outcome == 'success' }}
+      if: ${{ always() && steps.build.outcome == 'success' }}
       id: tt_tests
       timeout-minutes: 90
       run: ./installation/bin/tests --seed=${{ steps.obtain_seed.outputs.seed }} --gtest_filter=tt_*  --dataset=tools/testdata/
